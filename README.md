@@ -1,12 +1,12 @@
-# Eloquent Private Model
+# Mugglequent
 
-This is a prototype and not yet production ready.  The purpose of this prototype is to:
+This is a prototype and not yet production ready.  The purpose of this prototype is to provide simple behaviors and conventions that:
  
 1.  Limit the number of ways that Eloquent models can be mutated.
-2.  Allow for the use of value objects with models.
-3.  Decrease the necessity of PHPDoc blocks in order to use IDE autocompletion.
+2.  Reliably enable the use of value objects with models.
+3.  Decrease the magic that prevents both IDE autocompletion and static analysis.
 
-The above 3 items enable larger-complex systems to be more easily maintained when using Eloquent.
+These items enable larger and more complex systems to be more easily maintained and understood when using Eloquent.  The magic methods and inability to protect attributes can lead large systems to have unexpected mutations and inconsistent usages.
 
 ## Available Behaviors
 
@@ -38,11 +38,11 @@ class User extends PrivateModel {
 }
 ```
 
-Often times, you don't need a setter for a field.  Our implementation already overrides and implements `setCreatedAt` and `setUpdatedAt` for you, but you also probably don't need a setter for your `id` attribute.
+Our implementation already overrides and implements `setCreatedAt` and `setUpdatedAt` for you, which are requred by Eloquent.  You may not need a setter, especially when dealing with keys, so don't automatically implement a getter and setter for every attribute.
 
 ### Using value objects for attributes, aka embedded types
 
-The power in disabling magic is to allow you to reliably use value objects with your model without touching the underlying Eloquent code.
+Disabling magic allows you to reliably use value objects across your models without touching the underlying Eloquent code.
 
 ```php
 class User extends PrivateModel {
@@ -60,12 +60,36 @@ class User extends PrivateModel {
 
 }
 ```
-
 Note: We use methods here to access `firstName` and `lastName` because we favor immutable value objects.
+
+```php
+class Name
+{
+    private $firstName;
+    private $lastName;
+
+    public function __construct(string $firstName, string $lastName)
+    {
+        $this->firstName = $firstName;
+        $this->lastName = $lastName;
+    }
+
+    public function firstName(): string
+    {
+        return $this->firstName;
+    }
+
+    public function lastName(): string
+    {
+        return $this->lastName;
+    }
+}
+```
 
 ### Accessing relationships
 
-While not required, we recommend the following method of using relationships.  Eloquent's convention is to use public methods, but we recommend protected methods and defining a public API for accessing relationships.  
+Eloquent's convention is to use public methods, but we recommend protected methods and defining a public API for accessing relationships.
+
 Note: The relationship methods cannot be made private, they must be made protected, so the base Model class can access them for loading data.
 
 #### One-to-one relationship example
